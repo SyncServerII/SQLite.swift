@@ -101,9 +101,13 @@ public final class Connection {
     ///
     ///     Default: `false`.
     ///
+    ///   - additionalFlags: Optionally provide additional flags to be used when opening the SQ Lite database. E.g., SQLITE_OPEN_FILEPROTECTION_NONE (you'll need to import SQLiteObjc).
+    ///
+    ///     Default: `nil` -- no additional flags.
+    ///
     /// - Returns: A new database connection.
-    public init(_ location: Location = .inMemory, readonly: Bool = false) throws {
-        let flags = readonly ? SQLITE_OPEN_READONLY : SQLITE_OPEN_CREATE | SQLITE_OPEN_READWRITE
+    public init(_ location: Location = .inMemory, readonly: Bool = false, additionalFlags: Int32? = nil) throws {
+        let flags = readonly ? SQLITE_OPEN_READONLY : SQLITE_OPEN_CREATE | SQLITE_OPEN_READWRITE | (additionalFlags ?? 0)
         try check(sqlite3_open_v2(location.description, &_handle, flags | SQLITE_OPEN_FULLMUTEX, nil))
         queue.setSpecific(key: Connection.queueKey, value: queueContext)
     }
@@ -118,12 +122,16 @@ public final class Connection {
     ///   - readonly: Whether or not to open the database in a read-only state.
     ///
     ///     Default: `false`.
+    ///     
+    ///   - additionalFlags: Optionally provide additional flags to be used when opening the SQ Lite database. E.g., SQLITE_OPEN_FILEPROTECTION_NONE (you'll need to import SQLiteObjc).
+    ///
+    ///     Default: `nil` -- no additional flags.
     ///
     /// - Throws: `Result.Error` iff a connection cannot be established.
     ///
     /// - Returns: A new database connection.
-    public convenience init(_ filename: String, readonly: Bool = false) throws {
-        try self.init(.uri(filename), readonly: readonly)
+    public convenience init(_ filename: String, readonly: Bool = false, additionalFlags: Int32? = nil) throws {
+        try self.init(.uri(filename), readonly: readonly, additionalFlags: additionalFlags)
     }
 
     deinit {
